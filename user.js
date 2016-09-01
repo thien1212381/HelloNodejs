@@ -6,9 +6,9 @@ var listItem = [
   {id:2,name:"Nguyen Van B"},
   {id:3,name:"Nguyen Van C"}
 ]
-router.get('/',function(req,res){
-  console.log("New connection");
+router.get('/',function(req,res,next){
   res.render('index',{ list: listItem });
+  next();
 });
 
 router.post('/add',function(req,res){
