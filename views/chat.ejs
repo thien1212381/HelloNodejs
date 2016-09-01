@@ -13,10 +13,14 @@
       #messages li:nth-child(odd) { background: #eee; }
     </style>
     <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.2.min.js"></script>
-
+    <script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
+    <script>
+      var socket = io();
+      var username='';
+      var istyping = false;
+    </script>
   </head>
   <body>
-     <script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
     <ul id="messages"></ul>
     <form action="">
       <input type="text" id="m"/>
@@ -24,11 +28,52 @@
     </form>
   </body>
   <script>
-    var socket = io();
+
+    socket.on('sayhello',function(data){
+      $('#messages').append($('<li style="color:red">').text('Welcome '+data.username+' to room chat!'));
+    });
+
+    socket.on('request-user',function(data){
+      username='';
+      do {
+       username = prompt(data.message,'Anonymous');
+      } while (username == null || username == '');
+      socket.emit('add-user',{username:username});
+    })
+
     $('form').submit(function(){
-      socket.emit('chat message', $('#m').val());
+      istyping=false;
+      socket.emit('stop-typing',{username: username});
+      socket.emit('send-message', {message:$('#m').val(),username:username});
       $('#m').val('');
       return false;
     });
-    </script>
+
+    socket.on('send-message', function(data){
+      $('#messages').append($('<li>').append($('<span style="color:red">').text(data.username)).append($('<span>').text(' : '+data.message)));
+    });
+
+    socket.on('remove-user',function(data){
+      $('#messages').append($('<li style="color:red"><i>').text(data.username+data.message));
+    });
+
+    $('#m').keydown(function(){
+      if(!istyping)
+      {
+        socket.emit('is-typing',{username: username});
+        istyping=true;
+      }
+    });
+
+    socket.on('typing',function(data){
+      $('#messages').append($('<li style="color:blue" class="typing_'+data.username+'">').text(data.username+' is typing....'));
+    });
+
+    socket.on('stop-typing',function(data){
+      $('.typing_'+data.username).fadeOut(function(){
+        $(this).remove();
+      });
+    });
+
+  </script>
 </html>
