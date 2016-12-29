@@ -21,7 +21,11 @@
     </script>
   </head>
   <body>
-    <ul id="messages"></ul>
+    <ul id="messages">
+      <% for(var i=0; i<data.length;i ++) { %>
+        <li><span style="color:red"><%= data[i].user %></span><span> : <%= data[i].message %></span</li>
+      <% } %>
+    </ul>
     <form action="">
       <input type="text" id="m"/>
       <button>Send</button>

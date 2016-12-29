@@ -1,8 +1,14 @@
-module.exports = function(app,io){
+var chatModel = require('./chatModel');
 
+module.exports = function(app,io){
   app.get('/chat',function(req,res,next){
-    res.render('chat');
-    next();
+    chatModel.find({}, function(err,results){
+      if(err)
+        console.log(err);
+      console.log(results);
+      res.render('chat',{data : results});
+      next();
+    })
   });
 
   var users=[];
@@ -39,6 +45,15 @@ module.exports = function(app,io){
 
     socket.on('send-message', function(data){
       io.emit('send-message', {message: data.message,username: data.username});
+      var chatData = new chatModel({
+        user: data.username,
+        message: data.message
+      });
+      chatData.save(function(err){
+        if(err)
+          console.log(err);
+        console.log("new user add");
+      })
     });
 
     socket.on('disconnect',function(){
